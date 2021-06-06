@@ -1,31 +1,50 @@
-﻿@{
+﻿@model CascadeDropDownListASPNetMVC5.Models.PersonModel
+@{
     ViewBag.Title = "Home Page";
 }
 
-<div class="jumbotron">
-    <h1>ASP.NET</h1>
-    <p class="lead">ASP.NET is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="https://asp.net" class="btn btn-primary btn-lg">Learn more &raquo;</a></p>
-</div>
 
-<div class="row">
-    <div class="col-md-4">
-        <h2>Getting started</h2>
-        <p>
-            ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
-            enables a clean separation of concerns and gives you full control over markup
-            for enjoyable, agile development.
-        </p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Get more libraries</h2>
-        <p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
-    </div>
-    <div class="col-md-4">
-        <h2>Web Hosting</h2>
-        <p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
-        <p><a class="btn btn-default" href="https://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+<div class="jumbotron">
+    <div id="dropDownListdiv">
+        @using (Html.BeginForm("Index", "CascadingDropDownList", FormMethod.Post))
+        {
+            @Html.DropDownListFor(m => m.CountryId, Model.Countries, "Please select", new { @class = "form-control" })
+            @Html.DropDownListFor(m => m.StateId, Model.States, "Please select", new { @class = "form-control" })
+            @Html.DropDownListFor(m => m.CityId, Model.Cities, "Please select", new { @class = "form-control" })
+            <input type="submit" value="Submit" />
+        }
     </div>
 </div>
+<script src="~/Scripts/jquery-3.4.1.js"></script>
+<script>
+    $(document).ready(function () {
+                 $("#dropDownListdiv").on("change", "select", function () {
+                       var value = $(this).val();
+                       var id = $(this).attr("id");
+                       $.post("@Url.Action("setDropDrownList")", { type: id, value: value }, function (data) {
+                             switch (id) {
+                                     case "CountryId":
+                                         PopulateDropDown("#StateId", data.States);
+                                         PopulateDropDown("#CityId", data.Cities);
+                                         break;
+                                     case "StateId":
+                                         PopulateDropDown("#CityId", data.Cities);
+                                         break;
+                              }
+                     });
+                 });
+    });
+
+
+             function PopulateDropDown(dropDownId, list) {
+                 $(dropDownId).empty();
+                 $(dropDownId).append("<option>Please select</option>")
+                 $.each(list, function (index, row) {
+                     if (index == 0) {
+                         $(dropDownId).append("<option value='" + row.Value + "' selected='selected'>" + row.Text + "</option>");
+                     } else {
+                         $(dropDownId).append("<option value='" + row.Value + "'>" + row.Text + "</option>")
+                     }
+                 });
+             }
+</script>
